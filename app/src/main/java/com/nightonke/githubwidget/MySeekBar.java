@@ -2,14 +2,14 @@ package com.nightonke.githubwidget;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.support.v7.widget.AppCompatSeekBar;
 import android.util.AttributeSet;
-import android.widget.SeekBar;
 
 /**
  * Created by Weiping on 2016/4/27.
  */
 
-public class MySeekBar extends SeekBar {
+public class MySeekBar extends AppCompatSeekBar {
 
     public MySeekBar(Context context) {
         super(context);
