@@ -40,6 +40,10 @@ import com.github.johnpersano.supertoasts.SuperToast;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -88,13 +92,11 @@ public class Util {
     public final static String WIDTH_STRING = "<svg width=\"";
     public final static int BLOCK_WIDTH = 10;
     public static int getContributionsColumnNumber(String string) {
-        int width = Integer.valueOf(
-                string.substring(
-                        string.indexOf(WIDTH_STRING) + WIDTH_STRING.length(),
-                        string.indexOf("\"", WIDTH_STRING.length() + 1)));
-        int num = width / BLOCK_WIDTH;
-        Log.e("buck", "getContributionsColumnNumber: " + num);
-        return num;
+        Document document = Jsoup.parse(string);
+        Elements elements = document.select("svg.js-calendar-graph-svg");
+        String width = elements.get(0).attr("width");
+        return Integer.valueOf(width) / BLOCK_WIDTH;
+
     }
 
     public final static String FILL_STRING = "fill=\"";
@@ -102,21 +104,15 @@ public class Util {
     public final static String DATE_STRING = "data-date=\"";
     public static ArrayList<Day> getContributionsFromString(String string) {
         ArrayList<Day> contributions = new ArrayList<>();
-        int fillPos = -1;
-        int dataPos = -1;
-        int datePos = -1;
-        while (true) {
-            fillPos = string.indexOf(FILL_STRING, fillPos + 1);
-            dataPos = string.indexOf(DATA_STRING, dataPos + 1);
-            datePos = string.indexOf(DATE_STRING, datePos + 1);
+        Document document = Jsoup.parse(string);
+        Elements elements = document.select("rect.day");
+        for (Element element : elements) {
+            String data = element.attr("data-date");
+            String[] datas = data.split("-");
 
-            if (fillPos == -1) break;
-
+            String fill = element.attr("fill");
             int level = 0;
-            String levelString
-                    = string.substring(fillPos + FILL_STRING.length(),
-                    fillPos + FILL_STRING.length() + 7);
-            switch (levelString) {
+            switch (fill) {
                 case "#ebedf0": level = 0; break;
                 case "#c6e48b": level = 1; break;
                 case "#7bc96f": level = 2; break;
@@ -124,21 +120,15 @@ public class Util {
                 case "#196127": level = 4; break;
             }
 
-            int dataEndPos = string.indexOf("\"", dataPos + DATA_STRING.length());
-            String dataString = string.substring(dataPos + DATA_STRING.length(), dataEndPos);
-            int data = Integer.valueOf(dataString);
-
-            String dateString
-                    = string.substring(datePos + DATE_STRING.length(),
-                    datePos + DATE_STRING.length() + 11);
+            String count = element.attr("data-count");
 
             contributions.add(new Day(
-                    Integer.valueOf(dateString.substring(0, 4)),
-                    Integer.valueOf(dateString.substring(5, 7)),
-                    Integer.valueOf(dateString.substring(8, 10)),
+                    Integer.valueOf(datas[0]),
+                    Integer.valueOf(datas[1]),
+                    Integer.valueOf(datas[2]),
                     level,
-                    data
-                    ));
+                    Integer.valueOf(count)
+            ));
         }
 
         return contributions;
